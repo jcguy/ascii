@@ -4,10 +4,14 @@ from irc3 import rfc
 from time import sleep
 import irc3
 
+
 @irc3.plugin
 class Plugin(object):
     whitelist = {}
     registered = False
+
+    admin = "Rhet"
+    mods = ["Wildbow"]
 
     # Start the bot, and initialize the whitelist with the current contents
     # of the whitelist file
@@ -35,15 +39,16 @@ class Plugin(object):
 
     # Kicks the given user from the given channel
     def kick(self, channel, nick):
+        return
         self.bot.kick(channel,
                       nick,
                       reason="This channel is the property of the "
                              "People's Front of Judea!")
 
-    # Forward permissions errors to Rhet
+    # Forward permissions errors to admin
     @irc3.event(rfc.ERR_CHANOPRIVSNEEDED)
     def myevent(self, srv=None, me=None, channel=None, data=None):
-        self.bot.privmsg("Rhet", "{} {} {} {}".format(srv, me, channel, data))
+        self.bot.privmsg(admin, "{} {} {} {}".format(srv, me, channel, data))
 
     # As users join, say whether or not they're on the whitelist, and
     # then kick them if they are not
@@ -64,6 +69,10 @@ class Plugin(object):
         if on_whitelist:
             self.bot.privmsg(channel,
                              "Welcome back, {}.".format(mask.nick))
+        elif mask.nick in mods:
+            self.bot.privmsg(channel,
+                             "Hello, {}. Welcome to the channel."
+                                .format(mask.nick))
         else:
             self.bot.privmsg(channel,
                              "{} is not on the whitelist. Goodbye."
@@ -71,7 +80,7 @@ class Plugin(object):
             sleep(1)
             self.kick(channel, mask.nick)
 
-    # Forward any PMs to Rhet
+    # Forward any PMs to admin
     @irc3.event(rfc.PRIVMSG)
     def reply(self, tags=None, mask=None, event=None, target=None, data=None):
         if not self.registered \
@@ -83,11 +92,11 @@ class Plugin(object):
                 self.bot.privmsg(mask.nick, "identify {}".format(password))
 
         if not target.startswith("#"):
-            self.bot.privmsg("Rhet",
+            self.bot.privmsg(admin,
                              "{} {} {} {} {}"
                                 .format(tags, mask, event, target, data))
 
-        if "Rhet" in mask.nick \
+        if admin in mask.nick \
            and not target.startswith("#") \
            and not data.startswith("?"):
             self.bot.privmsg("#theroast", data)
@@ -100,7 +109,7 @@ class Plugin(object):
 
             %%update
         """
-        update_whitelist()
+        self.update_whitelist()
         yield "Updated whitelist"
 
     # Private message the user the whitelist
