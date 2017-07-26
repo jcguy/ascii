@@ -48,7 +48,7 @@ class Plugin(object):
     # Forward permissions errors to admin
     @irc3.event(rfc.ERR_CHANOPRIVSNEEDED)
     def myevent(self, srv=None, me=None, channel=None, data=None):
-        self.bot.privmsg(admin, "{} {} {} {}".format(srv, me, channel, data))
+        self.bot.privmsg(self.admin, "{} {} {} {}".format(srv, me, channel, data))
 
     # As users join, say whether or not they're on the whitelist, and
     # then kick them if they are not
@@ -69,7 +69,7 @@ class Plugin(object):
         if on_whitelist:
             self.bot.privmsg(channel,
                              "Welcome back, {}.".format(mask.nick))
-        elif mask.nick in mods:
+        elif mask.nick in self.mods:
             self.bot.privmsg(channel,
                              "Hello, {}. Welcome to the channel."
                                 .format(mask.nick))
@@ -92,11 +92,11 @@ class Plugin(object):
                 self.bot.privmsg(mask.nick, "identify {}".format(password))
 
         if not target.startswith("#"):
-            self.bot.privmsg(admin,
+            self.bot.privmsg(self.admin,
                              "{} {} {} {} {}"
                                 .format(tags, mask, event, target, data))
 
-        if admin in mask.nick \
+        if self.admin in mask.nick \
            and not target.startswith("#") \
            and not data.startswith("?"):
             self.bot.privmsg("#theroast", data)
