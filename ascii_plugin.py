@@ -80,7 +80,8 @@ class Plugin(object):
                              "{} {} {} {} {}"
                                 .format(tags, mask, event, target, data))
 
-        if "Rhet" in mask.nick:
+        if "Rhet" in mask.nick \
+           and not target.startswith("#"):
             self.bot.privmsg("#theroast", data)
 
 
