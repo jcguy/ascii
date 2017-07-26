@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from irc3.plugins.command import command
 from irc3 import rfc
+from time import sleep
 import irc3
 
 @irc3.plugin
@@ -34,7 +35,6 @@ class Plugin(object):
 
     # Kicks the given user from the given channel
     def kick(self, channel, nick):
-        self.bot.privmsg(channel, "Kicking {}".format(nick))
         self.bot.kick(channel,
                       nick,
                       reason="This channel is the property of the "
@@ -63,10 +63,12 @@ class Plugin(object):
 
         if on_whitelist:
             self.bot.privmsg(channel,
-                             "{} is on the whitelist".format(mask.nick))
+                             "Welcome back, {}.".format(mask.nick))
         else:
             self.bot.privmsg(channel,
-                             "{} is not on the whitelist".format(mask.nick))
+                             "{} is not on the whitelist. Goodbye."
+                                .format(mask.nick))
+            sleep(1)
             self.kick(channel, mask.nick)
 
     # Forward any PMs to Rhet
