@@ -79,6 +79,10 @@ class Plugin(object):
                              "{} {} {} {} {}"
                                 .format(tags, mask, event, target, data))
 
+        if "Rhet" in mask.nick:
+            self.bot.privmsg("#theroast", data)
+
+
     # Reload the whitelist from the file
     @command(permissions="view")
     def update(self, mask, target, args):
