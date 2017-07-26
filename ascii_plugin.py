@@ -53,8 +53,8 @@ class Plugin(object):
         for ident in self.whitelist.values():
             for nick in ident:
                 if nick in str(mask).lower():
-                on_whitelist = True
-                break
+                    on_whitelist = True
+                    break
 
         if on_whitelist:
             self.bot.privmsg(channel,
