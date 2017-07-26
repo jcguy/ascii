@@ -51,7 +51,8 @@ class Plugin(object):
 
         on_whitelist = False
         for ident in self.whitelist.values():
-            if ident in str(mask).lower():
+            for nick in ident:
+                if nick in str(mask).lower():
                 on_whitelist = True
                 break
 
