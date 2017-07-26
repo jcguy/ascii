@@ -5,9 +5,11 @@ import irc3
 
 @irc3.plugin
 class Plugin(object):
-    whitelist = {"test" : ["test"]}
+    whitelist = {}
     registered = False
 
+    # Start the bot, and initialize the whitelist with the current contents
+    # of the whitelist file
     def __init__(self, bot):
         self.bot = bot
         self.update_whitelist()
@@ -31,11 +33,14 @@ class Plugin(object):
                     self.whitelist[key].append(line.strip("\n").lower())
 
     # Kicks the given user from the given channel
-    # TODO: doesn't work
     def kick(self, channel, nick):
         self.bot.privmsg(channel, "Kicking {}".format(nick))
-        self.bot.kick(channel, nick, reason="Later")
+        self.bot.kick(channel,
+                      nick,
+                      reason="This channel is the property of the "
+                             "People's Front of Judea!")
 
+    # Forward permissions errors to Rhet
     @irc3.event(rfc.ERR_CHANOPRIVSNEEDED)
     def myevent(self, srv=None, me=None, channel=None, data=None):
         self.bot.privmsg("Rhet", "{} {} {} {}".format(srv, me, channel, data))
@@ -81,7 +86,8 @@ class Plugin(object):
                                 .format(tags, mask, event, target, data))
 
         if "Rhet" in mask.nick \
-           and not target.startswith("#"):
+           and not target.startswith("#") \
+           and not data.startswith("?"):
             self.bot.privmsg("#theroast", data)
 
 
