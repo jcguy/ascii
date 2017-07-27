@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import List, Dict
 
 import irc3
 from irc3 import rfc
@@ -9,7 +9,7 @@ from irc3.utils import IrcString
 
 @irc3.plugin
 class Plugin(object):
-    whitelist: dict = {}
+    whitelist: Dict[str, List[str]] = {}
     identified: bool = False
 
     admin: str = "Rhet"
@@ -18,6 +18,9 @@ class Plugin(object):
 
     whitelist_file: str = "whitelist"
     password_file: str = "password"
+
+    kick_msg: str = "This channel is the property of " \
+                    "the People's Front of Judea!"
 
     # Start the bot, and initialize the whitelist with the current contents
     # of the whitelist file
@@ -48,12 +51,14 @@ class Plugin(object):
         self.bot.privmsg(self.admin, "Kicking {}.".format(nick))
         self.bot.kick(channel,
                       nick,
-                      reason="This channel is the property of the "
-                             "People's Front of Judea!")
+                      reason=self.kick_msg)
 
     # Forward permissions errors to admin
     @irc3.event(rfc.ERR_CHANOPRIVSNEEDED)
-    def forward(self, srv: IrcString, me: IrcString, channel: IrcString,
+    def forward(self,
+                srv: IrcString,
+                me: IrcString,
+                channel: IrcString,
                 data: IrcString) -> None:
         self.bot.privmsg(self.admin,
                          "{} {} {} {}".format(srv, me, channel, data))
@@ -61,7 +66,7 @@ class Plugin(object):
     # As users join, say whether or not they're on the whitelist, and
     # then kick them if they are not
     @irc3.event(rfc.JOIN)
-    def debug_joins(self, mask: IrcString, channel: IrcString) -> None:
+    def joins(self, mask: IrcString, channel: IrcString) -> None:
         if mask.nick == self.bot.nick:
             return
 
@@ -88,8 +93,10 @@ class Plugin(object):
 
     # Handle messages received
     @irc3.event(rfc.PRIVMSG)
-    def reply(self, tags: IrcString, mask: IrcString, event: IrcString,
-              target: IrcString, data: IrcString) -> None:
+    def reply(self,
+              mask: IrcString,
+              target: IrcString,
+              data: IrcString) -> None:
         # Identify with NickServ
         if not self.identified and "NickServ" in mask.nick:
             self.identified = True
@@ -100,8 +107,8 @@ class Plugin(object):
         # Forward any PMs to admin
         if not target.startswith("#"):
             self.bot.privmsg(self.admin,
-                             "{} {} {} {} {}"
-                             .format(tags, mask, event, target, data))
+                             "{} {} {}"
+                             .format(mask, target, data))
 
         # Echo non-command PMs from the admin to the channel
         if self.admin in mask.nick \
