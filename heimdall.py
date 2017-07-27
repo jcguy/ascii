@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# This plugin monitors joins and kicks unlisted users out
+# This plugin monitors joins, and kicks unlisted users out
 from typing import Dict, List
 
 import irc3
@@ -19,89 +19,88 @@ class Plugin(object):
     kick_msg: str = "This channel is the property of " \
                     "the People's Front of Judea!"
 
-    # Start the bot, and initialize the whitelist with the current contents
-    # of the whitelist file
     def __init__(self, bot: irc3.IrcBot):
         self.bot = bot
         self.update_whitelist()
 
-    # Reads in the whitelist file, building a dictionary where each line
-    # starting with a # is a nick comment, and the following lines
-    # are some identifying component of the user's mask
+    # Set self.whitelist to the contents of the whitelist file
     def update_whitelist(self) -> None:
         self.whitelist = {}
+
         with open(self.whitelist_file, "r") as file:
             key: str = ""
             for line in file:
                 # ignore blank lines
                 if line == "\n":
                     continue
+
+                # Lines starting with # are just a comment, usually with
+                # the nick of the user being identified
                 if line.startswith("#"):
                     key = line.strip("#").strip("\n")
+
                     if key not in self.whitelist.keys():
                         self.whitelist[key] = []
                 else:
                     self.whitelist[key].append(line.strip("\n").lower())
 
-    # Kicks the given user from the given channel
     def kick(self, channel: IrcString, nick: IrcString) -> None:
         self.bot.privmsg(config.admin, "Kicking {}.".format(nick))
         self.bot.kick(channel, nick, reason=self.kick_msg)
 
-    # As users join, say whether or not they're on the whitelist, and
-    # then kick them if they are not
+    # Respond to users joining the channel
     @irc3.event(rfc.JOIN)
-    def on_join(self, mask: IrcString, channel: IrcString) -> None:
+    def on_user_join(self, mask: IrcString, channel: IrcString) -> None:
+        # Ignore our own join
         if mask.nick == self.bot.nick:
             return
 
+        # Check through the whitelist
         on_whitelist: bool = False
-
-        for ident in self.whitelist.values():
-            for nick in ident:
-                if nick in str(mask).lower():
+        for ident_list in self.whitelist.values():
+            for ident in ident_list:
+                if ident in mask.lower():
                     on_whitelist = True
                     break
 
         if on_whitelist:
-            self.bot.privmsg(channel,
-                             "Welcome back, {}.".format(mask.nick))
+            message = "Welcome back, {}".format(mask.nick)
         elif mask.nick in self.mods:
-            self.bot.privmsg(channel,
-                             "Hello, {}. Welcome to the channel."
-                             .format(mask.nick))
+            message = "Hello, {}. Welcome to the channel.".format(mask.nick)
         else:
-            self.bot.privmsg(channel,
-                             "{} is not on the whitelist. Goodbye."
-                             .format(mask.nick))
+            message = "{} was not on the whitelist.".format(mask.nick)
             self.kick(channel, mask.nick)
 
-    # Reload the whitelist from the file
+        self.bot.privmsg(channel, message)
+
     # noinspection PyUnusedLocal
     @command(permissions="view")
     def update(self, mask, target, args):
-        """Update
+        """Reload the whitelist from the file
 
             %%update
         """
         self.update_whitelist()
         yield "Updated whitelist"
 
-    # Private message the user the whitelist
     # noinspection PyUnusedLocal
     @command(permissions="view")
     def list(self, mask, target, args):
-        """List
+        """List the users currently on the whitelist. Warning: lots of PMs
 
             %%list
         """
-        self.bot.privmsg(mask.nick, str(self.whitelist))
+        for key, value in self.whitelist.items():
+            message: str = "{}: ".format(key)
+            for ident in value:
+                message += "{} ".format(ident)
 
-    # Add a user to the whitelist
+            self.bot.privmsg(mask.nick, message)
+
     # noinspection PyUnusedLocal
     @command(permissions="admin")
     def add(self, mask, target, args):
-        """Add User
+        """Add a user to the white list, using a unique portion of their mask
 
             %%add <user> <key>
         """
@@ -110,5 +109,6 @@ class Plugin(object):
             f.writelines(args["<key>"] + "\n")
 
         self.update_whitelist()
-        yield "Added user {} ({})".format(args["<user>"],
-                                          args["<key>"])
+
+        yield "Added user {} ({}) and updated whitelist." \
+            .format(args["<user>"], args["<key>"])

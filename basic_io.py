@@ -24,21 +24,28 @@ class Plugin(object):
               event: IrcString = None,
               target: IrcString = None,
               data: IrcString = None) -> None:
-        # Identify with NickServ
-        if not self.identified and "NickServ" in mask.nick:
-            self.identified = True
-            with open(self.password_file) as f:
-                password: str = f.readline().strip("\n")
-                self.bot.privmsg(mask.nick, "identify {}".format(password))
+        # Ignore messages sent to channels
+        if target.startswith("#"):
+            return
+
+        if mask.nick == "NickServ":
+            if not self.identified:
+                self.identify()
+                self.identified = True
+            return
 
         # Forward any PMs to admin
-        if not target.startswith("#") \
-                and "NickServ" not in mask.nick \
-                and config.admin not in mask.nick:
-            self.bot.privmsg(config.admin, "{} {}".format(mask, data))
+        if mask.nick != config.admin:
+            self.bot.privmsg(config.admin, "{} {}".format(mask.nick, data))
+            return
 
-        # Echo non-command PMs from the admin to the channel
-        if config.admin in mask.nick \
-                and not target.startswith("#") \
-                and not data.startswith("?"):
+        # Echo non-command admin PMs to the channel
+        if not data.startswith("?"):
             self.bot.privmsg(config.channel, data)
+            return
+
+    # Identify with NickServ
+    def identify(self):
+        with open(self.password_file) as file:
+            password: str = file.readline().strip("\n")
+            self.bot.privmsg("NickServ", "identify {}".format(password))
