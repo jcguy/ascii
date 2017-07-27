@@ -16,8 +16,11 @@ class Plugin(object):
 
     mods: List[str] = ["Wildbow"]
     whitelist_file: str = "whitelist"
-    kick_msg: str = "This channel is the property of " \
-                    "the People's Front of Judea!"
+    whitelist_msg: str = "Welcome back, {}."
+    modlist_msg: str = "Howdy, {}. Welcome to the channel."
+    kick_msg: str = "{} was not on the whitelist."
+    kick_reason: str = "This channel is the property of " \
+                       "the People's Front of Judea!"
 
     def __init__(self, bot: irc3.IrcBot):
         self.bot = bot
@@ -46,7 +49,7 @@ class Plugin(object):
 
     def kick(self, channel: IrcString, nick: IrcString) -> None:
         self.bot.privmsg(config.admin, "Kicking {}.".format(nick))
-        self.bot.kick(channel, nick, reason=self.kick_msg)
+        self.bot.kick(channel, nick, reason=self.kick_reason)
 
     # Respond to users joining the channel
     @irc3.event(rfc.JOIN)
@@ -64,11 +67,11 @@ class Plugin(object):
                     break
 
         if on_whitelist:
-            message = "Welcome back, {}".format(mask.nick)
+            message = self.whitelist_msg.format(mask.nick)
         elif mask.nick in self.mods:
-            message = "Howdy, {}. Welcome to the channel.".format(mask.nick)
+            message = self.modlist_msg.format(mask.nick)
         else:
-            message = "{} was not on the whitelist.".format(mask.nick)
+            message = self.kick_msg.format(mask.nick)
             self.kick(channel, mask.nick)
 
         self.bot.privmsg(channel, message)
