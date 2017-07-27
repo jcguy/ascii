@@ -67,7 +67,7 @@ class Plugin(object):
                     break
 
         if on_whitelist:
-            message = self.whitelist_msg.format(mask.nick)
+            return  # message = self.whitelist_msg.format(mask.nick)
         elif mask.nick in self.mods:
             message = self.modlist_msg.format(mask.nick)
         else:
