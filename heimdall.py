@@ -66,7 +66,7 @@ class Plugin(object):
         if on_whitelist:
             message = "Welcome back, {}".format(mask.nick)
         elif mask.nick in self.mods:
-            message = "Hello, {}. Welcome to the channel.".format(mask.nick)
+            message = "Howdy, {}. Welcome to the channel.".format(mask.nick)
         else:
             message = "{} was not on the whitelist.".format(mask.nick)
             self.kick(channel, mask.nick)
@@ -100,7 +100,7 @@ class Plugin(object):
     # noinspection PyUnusedLocal
     @command(permissions="admin")
     def add(self, mask, target, args):
-        """Add a user to the white list, using a unique portion of their mask
+        """Add a user to the whitelist, using a unique portion of their mask
 
             %%add <user> <key>
         """
