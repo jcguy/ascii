@@ -12,6 +12,7 @@ class Plugin(object):
 
     admin = "Rhet"
     mods = ["Wildbow"]
+    channel = "#theroast"
 
     # Start the bot, and initialize the whitelist with the current contents
     # of the whitelist file
@@ -39,7 +40,7 @@ class Plugin(object):
 
     # Kicks the given user from the given channel
     def kick(self, channel, nick):
-        return
+        self.bot.privmsg(self.admin, "Kicking {}.".format(nick))
         self.bot.kick(channel,
                       nick,
                       reason="This channel is the property of the "
@@ -48,7 +49,8 @@ class Plugin(object):
     # Forward permissions errors to admin
     @irc3.event(rfc.ERR_CHANOPRIVSNEEDED)
     def myevent(self, srv=None, me=None, channel=None, data=None):
-        self.bot.privmsg(self.admin, "{} {} {} {}".format(srv, me, channel, data))
+        self.bot.privmsg(self.admin,
+                         "{} {} {} {}".format(srv, me, channel, data))
 
     # As users join, say whether or not they're on the whitelist, and
     # then kick them if they are not
@@ -77,12 +79,13 @@ class Plugin(object):
             self.bot.privmsg(channel,
                              "{} is not on the whitelist. Goodbye."
                                 .format(mask.nick))
-            sleep(1)
+            sleep(2)
             self.kick(channel, mask.nick)
 
-    # Forward any PMs to admin
+    # Handle messages received
     @irc3.event(rfc.PRIVMSG)
     def reply(self, tags=None, mask=None, event=None, target=None, data=None):
+        # Identify with NickServ
         if not self.registered \
            and "NickServ" in mask.nick \
            and not target.startswith("#"):
@@ -91,16 +94,17 @@ class Plugin(object):
                 password = f.readline().strip("\n")
                 self.bot.privmsg(mask.nick, "identify {}".format(password))
 
+        # Forward any PMs to admin
         if not target.startswith("#"):
             self.bot.privmsg(self.admin,
                              "{} {} {} {} {}"
                                 .format(tags, mask, event, target, data))
 
+        # Echo non-command PMs from the admin to the channel
         if self.admin in mask.nick \
            and not target.startswith("#") \
            and not data.startswith("?"):
-            self.bot.privmsg("#theroast", data)
-
+            self.bot.privmsg(self.channel, data)
 
     # Reload the whitelist from the file
     @command(permissions="view")
