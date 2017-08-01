@@ -126,7 +126,7 @@ class Plugin(object):
         user = None
         ident = None
 
-        for key, value in self.whitelist:
+        for key, value in self.whitelist.items():
             if args["<identifier>"] in key or args["<identifier>"] in value:
                 user = key
                 ident = value
@@ -135,7 +135,7 @@ class Plugin(object):
         if user:
             self.whitelist.pop(user)
             with open(self.whitelist_file, "w") as f:
-                for key, value in self.whitelist:
+                for key, value in self.whitelist.items():
                     f.write("#" + key + "\n")
                     f.write(value + "\n")
 
