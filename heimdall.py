@@ -101,7 +101,7 @@ class Plugin(object):
             self.bot.privmsg(mask.nick, message)
 
     # noinspection PyUnusedLocal
-    @command(permissions="admin")
+    @command(permissions="view")
     def add(self, mask, target, args):
         """Add a user to the whitelist, using a unique portion of their mask
 
@@ -115,3 +115,29 @@ class Plugin(object):
 
         yield "Added user {} ({}) and updated whitelist." \
             .format(args["<user>"], args["<key>"])
+
+    # noinspection PyUnusedLocal
+    @command(permissions="view")
+    def remove(self, mask, target, args):
+        """Removes a user from the whitelist
+
+            %%remove <identifier>
+        """
+        user = None
+        ident = None
+
+        for key, value in self.whitelist:
+            if args["<identifier>"] in key or args["<identifier>"] in value:
+                user = key
+                ident = value
+                break
+
+        if user:
+            self.whitelist.pop(user)
+            with open(self.whitelist_file, "w") as f:
+                for key, value in self.whitelist:
+                    f.write("#" + key + "\n")
+                    f.write(value + "\n")
+
+        yield "Removed user {} ({}) and updated whitelist." \
+            .format(user, ident)
