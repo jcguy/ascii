@@ -137,7 +137,8 @@ class Plugin(object):
             with open(self.whitelist_file, "w") as f:
                 for key, value in self.whitelist.items():
                     f.write("#" + key + "\n")
-                    f.write(value + "\n")
+                    for ident in value:
+                        f.write(ident + "\n")
 
         yield "Removed user {} ({}) and updated whitelist." \
             .format(user, ident)
