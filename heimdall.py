@@ -117,24 +117,24 @@ class Plugin(object):
             .format(args["<user>"], args["<key>"])
 
     # noinspection PyUnusedLocal
-    @command(permissions="view")
-    def remove(self, mask, target, args):
-        """Removes a user from the whitelist
-
-            %%remove <identifier>
-        """
-        user = None
-        ident = None
-
-        user_match = True
-
-        for key, value in self.whitelist.items():
-            if args["<identifier>"] == key \
-               or any([args["<identifier>"] == i for i in value]):
-                user_match = args["<identifier>"] == key
-                user = key
-                ident = value
-                break
+    # @command(permissions="view")
+    # def remove(self, mask, target, args):
+        # """Removes a user from the whitelist
+# 
+            # %%remove <identifier>
+        # """
+        # user = None
+        # ident = None
+# 
+        # user_match = True
+# 
+        # for key, value in self.whitelist.items():
+            # if args["<identifier>"] == key \
+               # or any([args["<identifier>"] == i for i in value]):
+                # user_match = args["<identifier>"] == key
+                # user = key
+                # ident = value
+                # break
 
         if user is not None:
             if user_match or len(self.whitelist[user]) == 1:
