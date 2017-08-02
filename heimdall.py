@@ -126,19 +126,33 @@ class Plugin(object):
         user = None
         ident = None
 
+        user_match = True
+
         for key, value in self.whitelist.items():
-            if args["<identifier>"] in key or args["<identifier>"] in value:
+            if args["<identifier>"] == key \
+               or any([args["<identifier>"] == i for i in value]):
+                user_match = args["<identifier>"] == key
                 user = key
                 ident = value
                 break
 
-        if user:
-            self.whitelist.pop(user)
+        if user is not None:
+            if user_match or len(self.whitelist[user]) == 1:
+                self.whitelist.pop(user)
+            else:
+                self.whitelist[user] \
+                    .pop(self.whitelist[user].index(args["<identifier>"]))
+
             with open(self.whitelist_file, "w") as f:
                 for key, value in self.whitelist.items():
                     f.write("#" + key + "\n")
-                    for ident in value:
-                        f.write(ident + "\n")
+                    for i in value:
+                        f.write(i + "\n")
 
-        yield "Removed user {} ({}) and updated whitelist." \
-            .format(user, ident)
+            if user_match:
+                yield "Removed user {} and update whitelist.".format(user)
+            else:
+                yield "Removed user {} ({}) and updated whitelist." \
+                    .format(user, args["<identifier>"])
+        else:
+            yield "User {} not found.".format(args["<identifier>"])
