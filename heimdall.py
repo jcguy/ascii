@@ -47,7 +47,7 @@ class Plugin(object):
                 else:
                     self.whitelist[key].append(line.strip("\n").lower())
 
-    def kick(self, channel: IrcString, nick: IrcString) -> None:
+    def kick_user(self, channel: IrcString, nick: IrcString) -> None:
         self.bot.privmsg(config.admin, "Kicking {}.".format(nick))
         self.bot.kick(channel, nick, reason=self.kick_reason)
 
@@ -72,7 +72,7 @@ class Plugin(object):
             message = self.modlist_msg.format(mask.nick)
         else:
             message = self.kick_msg.format(mask.nick)
-            self.kick(channel, mask.nick)
+            self.kick_user(channel, mask.nick)
 
         self.bot.privmsg(channel, message)
 
@@ -115,6 +115,15 @@ class Plugin(object):
 
         yield "Added user {} ({}) and updated whitelist." \
             .format(args["<user>"], args["<key>"])
+
+    # noinspection PyUnusedLocal
+    @command(permissions="admin")
+    def kick(self, mask, target, args):
+        """Kicks the specified user
+
+            %%kick <user>
+        """
+        self.kick_user(config.channel, args["<user>"])
 
     # noinspection PyUnusedLocal
     # @command(permissions="view")
