@@ -77,7 +77,7 @@ class Plugin(object):
         self.bot.privmsg(channel, message)
 
     # noinspection PyUnusedLocal
-    @command(permissions="view")
+    @command(permission="view")
     def update(self, mask, target, args):
         """Reload the whitelist from the file
 
@@ -87,7 +87,7 @@ class Plugin(object):
         yield "Updated whitelist"
 
     # noinspection PyUnusedLocal
-    @command(permissions="view")
+    @command(permission="view")
     def list(self, mask, target, args):
         """List the users currently on the whitelist. Warning: lots of PMs
 
@@ -101,7 +101,7 @@ class Plugin(object):
             self.bot.privmsg(mask.nick, message)
 
     # noinspection PyUnusedLocal
-    @command(permissions="view")
+    @command(permission="view")
     def add(self, mask, target, args):
         """Add a user to the whitelist, using a unique portion of their mask
 
@@ -117,7 +117,7 @@ class Plugin(object):
             .format(args["<user>"], args["<key>"])
 
     # noinspection PyUnusedLocal
-    @command(permissions="admin")
+    @command(permission="admin")
     def kick(self, mask, target, args):
         """Kicks the specified user
 
@@ -126,7 +126,7 @@ class Plugin(object):
         self.kick_user(config.channel, args["<user>"])
 
     # noinspection PyUnusedLocal
-    # @command(permissions="view")
+    # @command(permission="view")
     # def remove(self, mask, target, args):
     #     """Removes a user from the whitelist
     #
